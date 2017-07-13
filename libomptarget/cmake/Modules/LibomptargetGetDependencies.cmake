@@ -15,7 +15,8 @@
 # libelf : required by some targets to handle the ELF files at runtime.
 # libffi : required to launch target kernels given function and argument 
 #          pointers.
-# CUDA : required to control offloading to NVIDIA GPUs.
+# CUDA   : required to control offloading to NVIDIA GPUs.
+# OpenCL : required to control offloading SPIR-V kernels.
 
 include (FindPackageHandleStandardArgs)
 
@@ -122,3 +123,15 @@ mark_as_advanced(
   LIBOMPTARGET_DEP_CUDA_FOUND 
   LIBOMPTARGET_DEP_CUDA_INCLUDE_DIRS
   LIBOMPTARGET_DEP_CUDA_LIBRARIES)
+
+################################################################################
+# Looking for OpenCL...
+################################################################################
+find_package(OpenCL QUIET)
+set(LIBOMPTARGET_DEP_OPENCL_FOUND ${OPENCL_FOUND})
+set(LIBOMPTARGET_DEP_OPENCL_LIBRARIES ${OPENCL_LIBRARIES})
+set(LIBOMPTARGET_DEP_OPENCL_INCLUDE_DIRS ${OPENCL_INCLUDE_DIRS})
+mark_as_advanced(
+        LIBOMPTARGET_DEP_OPENCL_FOUND
+        LIBOMPTARGET_DEP_OPENCL_INCLUDE_DIRS
+        LIBOMPTARGET_DEP_OPENCL_LIBRARIES)
