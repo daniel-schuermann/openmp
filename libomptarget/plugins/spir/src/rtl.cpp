@@ -68,9 +68,9 @@ public:
       for(cl_platform_id id : platformIds) {
         char buffer[128];
         clGetPlatformInfo(id, CL_PLATFORM_VERSION, 128, buffer, NULL);
-        //if(strncmp("OpenCL 2.1", buffer, 10) > 0) {
-        //  continue;
-        //}
+        if(strncmp("OpenCL 2.0 AMD", buffer, 14)) {
+          continue;
+        }
         DP("cl platform version is %s\n", buffer);
 
         clGetDeviceIDs(id, CL_DEVICE_TYPE_ALL, 0, nullptr, &numDevices);
@@ -150,6 +150,8 @@ __tgt_target_table *__tgt_rtl_load_binary(int32_t device_id,
   size_t NumEntries = (size_t)(image->EntriesEnd - image->EntriesBegin);
   DP("Expecting to have %zd entries defined.\n", NumEntries);
 
+  /*
+  // For debugging purposes, we can write out the spir binary
   char tmp_name[] = "/tmp/tmpfile_XXXXXX";
   int tmp_fd = mkstemp(tmp_name);
 
@@ -166,7 +168,7 @@ __tgt_target_table *__tgt_rtl_load_binary(int32_t device_id,
   fwrite(image->ImageStart, ImageSize, 1, ftmp);
   fclose(ftmp);
   DP("written to tmp\n")
-
+  */
   // create CommandQueue and Program
   cl_int status;
   DeviceInfo.Queues[device_id] = clCreateCommandQueueWithProperties(
@@ -263,20 +265,19 @@ int32_t __tgt_rtl_run_target_team_region(int32_t device_id, void *tgt_entry_ptr,
   clGetKernelInfo(*kernel, CL_KERNEL_FUNCTION_NAME, 128, buffer, nullptr);
   cl_uint n;
   clGetKernelInfo(*kernel, CL_KERNEL_NUM_ARGS, sizeof(cl_uint), &n, nullptr);
-  DP("number of args: %d\n", n);
+  DP("number of kernel parameters: %d\n", n);
+  DP("number of arguments: %d\n", arg_num);
+
 
   // set kernel args
-  void * arg;
-  void * ptr;
   std::vector<void *> ptrs(arg_num-1);
   for (int32_t i = 0; i < arg_num -1 /* ignore omp handle */; ++i) {
 
     ptrs[i] = (void *)((intptr_t)tgt_args[i] + tgt_offsets[i]);
-    size_t size;
-    clGetMemObjectInfo((cl_mem)ptrs[i], CL_MEM_SIZE, 8, &size, NULL);
     status = clSetKernelArg(*kernel, i, /*sizeof(intptr_t) + tgt_offsets[i]*/ sizeof(cl_mem), &ptrs[i]);
     if(status != CL_SUCCESS) {
       DP("OpenCL Error: Failed to set kernel arg %d for %s: %d\n", i, buffer, status);
+      return OFFLOAD_FAIL;
     } else {
       DP("OpenCL: Kernel Arg %d set successfully\n", i);
     }
@@ -297,7 +298,7 @@ int32_t __tgt_rtl_run_target_team_region(int32_t device_id, void *tgt_entry_ptr,
   if(team_num) { // num_teams() is specified
     global_work_size = local_work_size * team_num;
   } else {
-    global_work_size = local_work_size * DeviceInfo.maxWorkGroups[device_id] * 4; // have sane defaults
+    global_work_size = local_work_size * DeviceInfo.maxWorkGroups[device_id] * 8; // have sane defaults
   }
 
   // run kernel:

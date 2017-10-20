@@ -10,7 +10,6 @@ if(LIBOMPTARGET_DEP_OPENCL_FOUND)
             add_definitions(-DSPIR_ERROR_REPORT)
         endif()
 
-        #include_directories(${LIBOMPTARGET_DEP_CUDA_INCLUDE_DIRS})
         include_directories(${LIBOMPTARGET_DEP_LIBELF_INCLUDE_DIRS})
 
         add_library(omptarget.rtl.spir SHARED src/rtl.cpp)
@@ -23,7 +22,7 @@ if(LIBOMPTARGET_DEP_OPENCL_FOUND)
                 OpenCL
                 "-Wl,--version-script=${CMAKE_CURRENT_SOURCE_DIR}/../exports")
 
-        # Report to the parent scope that we are building a plugin for CUDA.
+        # Report to the parent scope that we are building a plugin for SPIR-V.
         set(LIBOMPTARGET_SYSTEM_TARGETS "${LIBOMPTARGET_SYSTEM_TARGETS} spir64-unknown-unknown" PARENT_SCOPE)
     else()
         libomptarget_say("Not building SPIR-V offloading plugin: only support SPIR-V in Linux x86_64 hosts.")
