@@ -270,8 +270,8 @@ int32_t __tgt_rtl_run_target_team_region(int32_t device_id, void *tgt_entry_ptr,
 
 
   // set kernel args
-  std::vector<void *> ptrs(arg_num-1);
-  for (int32_t i = 0; i < arg_num -1 /* ignore omp handle */; ++i) {
+  std::vector<void *> ptrs(arg_num);
+  for (int32_t i = 0; i < arg_num; ++i) {
 
     ptrs[i] = (void *)((intptr_t)tgt_args[i] + tgt_offsets[i]);
     status = clSetKernelArg(*kernel, i, /*sizeof(intptr_t) + tgt_offsets[i]*/ sizeof(cl_mem), &ptrs[i]);
